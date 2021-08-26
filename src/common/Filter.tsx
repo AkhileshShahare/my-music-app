@@ -3,16 +3,22 @@ import Select from "react-select";
 import makeAnimated from "react-select/animated";
 
 interface FilterProps {
-    filter: {action: string};
-    genres: any[];
-    handleChange: (option: any, { action, name }: { action: any; name: any; }) => void;
-    releaseYear: string;
-  }
+  filter: { action: string };
+  genres: any[];
+  handleChange: (
+    option: any,
+    { action, name }: { action: any; name: any }
+  ) => void;
+  releaseYear: string;
+}
 
-  const animatedComponents = makeAnimated();
+const animatedComponents = makeAnimated();
 
-const Filters = (props : FilterProps) => (
-  <Row className="justify-content-center">
+const Filters = (props: FilterProps) => (
+  <Row
+    className="justify-content-center"
+    style={{ position: "sticky", top: 0, zIndex: 100000 }}
+  >
     <Col xs={12} sm={5} className="m-2">
       <Select
         isMulti

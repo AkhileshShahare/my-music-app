@@ -35,7 +35,7 @@ const CardsList = (props: CardsListProps) => (
           paddingTop: "9rem"
         }}
       >
-        No Data Found
+        No Music Found!
       </div>
     ) : (
       //Paginated view of cards

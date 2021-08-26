@@ -5,6 +5,7 @@ import Filters from "./common/Filter";
 import CardsList from "./components/Cards/CardsList";
 import Header from "./common/Header";
 import { removeDuplicates } from "./helpers/util";
+import Footer from "./common/Footer";
 
 interface IKeys {
   value: number;
@@ -134,7 +135,7 @@ function App() {
   return (
     <div>
       <Header />
-      <Container>
+      <Container style={{ minHeight: "80vh" }}>
         {/* Show Errors! */}
         {error ? (
           <div
@@ -163,14 +164,24 @@ function App() {
             />
             {videos.length > cardsCount && (
               <div style={{ textAlign: "center" }}>
-                <Button color="link" onClick={loadMoreCards}>
+                <div
+                  color="link"
+                  onClick={loadMoreCards}
+                  style={{
+                    cursor: "pointer",
+                    fontWeight: 400,
+                    color: "#0d6efd",
+                    textDecoration: "underline"
+                  }}
+                >
                   Load More...
-                </Button>
+                </div>
               </div>
             )}
           </>
         )}
       </Container>
+      <Footer />
     </div>
   );
 }

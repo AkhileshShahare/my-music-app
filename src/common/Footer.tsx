@@ -1,16 +1,20 @@
 import { Container, Navbar, NavbarBrand } from "reactstrap";
 
-const Header = () => (
-  <Navbar color="light" light expand="md" style={{ minHeight: "10vh" }}>
+const Footer = () => (
+  <Navbar
+    style={{ background: "#252729", minHeight: "10vh" }}
+    expand="md"
+    className="mt-2"
+  >
     <Container>
       <NavbarBrand
         className="cursor-pointer"
         onClick={() => window.location.reload()}
       >
-        My Music App
+        © My Music App
       </NavbarBrand>
     </Container>
   </Navbar>
 );
 
-export default Header;
+export default Footer;
