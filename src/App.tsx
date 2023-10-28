@@ -4,146 +4,89 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Filters from "./common/Filter";
 import CardsList from "./components/Cards/CardsList";
 import Header from "./common/Header";
-import { removeDuplicates } from "./helpers/util";
 import Footer from "./common/Footer";
 
-interface IKeys {
-  value: number;
-  label: string;
-}
-
 function App() {
-  const [genres, setGenres] = useState([]);
-  const [origVideos, setOrigVideos] = useState([]);
-  const [videos, setVideos] = useState([]);
-  const [releaseYear, setReleaseYear] = useState<any>([]);
-  const [filter, setFilter] = useState({ action: "" });
-  const [isLoading, setIsLoading] = useState<Boolean>(false);
-  const [error, setError] = useState<Object>();
-  const [cardsCount, setCardsCount] = useState<number>(12);
+  const [data, setData] = useState({
+    genres: [],
+    origVideos: [],
+    videos: [],
+    releaseYear: [],
+    filter: { action: "" },
+    isLoading: false,
+    error: null,
+    cardsCount: 12,
+  });
 
-  //Handle async api call
+  const { genres, origVideos, videos, releaseYear, filter, isLoading, error, cardsCount } = data;
+
+  // Handle async API call and initial data setup
   useEffect(() => {
-    const url =
-      "https://raw.githubusercontent.com/XiteTV/frontend-coding-exercise/main/data/dataset.json";
-
     const fetchData = async () => {
+      const url = "https://raw.githubusercontent.com/XiteTV/frontend-coding-exercise/main/data/dataset.json";
+
       try {
         const response = await fetch(url);
-        setIsLoading(true);
+        setData((prevData) => ({ ...prevData, isLoading: true }));
         const json = await response.json();
-        setIsLoading(false);
-
-        //set genres from dataset for genre filter
-        setGenres(
-          json.genres.map(
-            ({ id, name }) =>
-              ({
-                value: id,
-                label: name
-              } as IKeys)
-          )
-        );
-
-        //set release year from dataset for year filter
-        setReleaseYear(
-          //remove year duplicates
-          removeDuplicates(
-            json.videos.map(
-              ({ release_year }) =>
-                ({
-                  value: release_year,
-                  label: release_year
-                } as IKeys)
-            ),
-            "value"
-          )
-        );
-        setVideos(json.videos);
-        setOrigVideos(json.videos);
+        setData((prevData) => ({
+          ...prevData,
+          isLoading: false,
+          genres: json.genres.map(({ id, name }) => ({ value: id, label: name })),
+          origVideos: json.videos,
+          videos: json.videos,
+          releaseYear: [...new Set(json.videos.map(({ release_year }) => ({ value: release_year, label: release_year })))],
+        }));
       } catch (error) {
         console.log("error", error);
-        setError(error);
+        setData((prevData) => ({ ...prevData, error }));
       }
     };
 
     fetchData();
   }, []);
 
-  //Set Filters in state
+  // Handle filter changes
   const handleChange = (option, { action, name }) => {
-    setFilter({ ...filter, action: action, [name]: option });
+    setData((prevData) => ({
+      ...prevData,
+      filter: { ...prevData.filter, action, [name]: option },
+    }));
   };
 
   const loadMoreCards = () => {
-    setCardsCount(cardsCount + 12);
+    setData((prevData) => ({
+      ...prevData,
+      cardsCount: prevData.cardsCount + 12,
+    }));
   };
 
-  //Handle different scenarios of filters being set
+  // Apply filters to the videos
   useEffect(() => {
-    //When Genre is set but year is not set
-    if (filter["genre"] && !filter["RY"]) {
-      //When genre is not set
-      !filter["genre"].length
-        ? setVideos(origVideos)
-        : setVideos(
-            origVideos.filter(({ genre_id }: any) =>
-              filter["genre"].map((x: any) => x.value).includes(genre_id)
-            )
-          );
-    }
-    //When Genre is not set but year is set
-    else if (filter["RY"] && !filter["genre"]) {
-      !filter["RY"]
-        ? setVideos(origVideos)
-        : setVideos(
-            origVideos.filter((x: any) => filter["RY"].value === x.release_year)
-          );
-    }
-    //When Genre is not set but year is set.
-    // When user tries to change the year
-    else if (
-      Object.keys(filter).includes("RY") &&
-      !filter["genre"] &&
-      filter.action === "clear"
-    ) {
-      setVideos(origVideos);
-    }
-    // When Genre is set and year is not set
-    else if (filter["genre"] && !filter["RY"]) {
-      setVideos(
-        videos.filter((x: any) => filter["RY"].value === x.release_year)
+    let filteredVideos = origVideos;
+
+    if (filter.genre && filter.genre.length) {
+      filteredVideos = filteredVideos.filter(({ genre_id }) =>
+        filter.genre.map((x) => x.value).includes(genre_id)
       );
     }
-    // When genre and year are both set
-    else if (filter["genre"] && filter["RY"]) {
-      //when genre filter is cleared/not set
-      !filter["genre"].length
-        ? setVideos(
-            origVideos.filter((x: any) => filter["RY"].value === x.release_year)
-          )
-        : setVideos(
-            origVideos.filter(
-              (x: any) =>
-                filter["RY"].value === x.release_year &&
-                filter["genre"].map((x: any) => x.value).includes(x.genre_id)
-            )
-          );
+
+    if (filter.RY) {
+      filteredVideos = filteredVideos.filter((x) => filter.RY.value === x.release_year);
     }
-  }, [filter]);
+
+    setData((prevData) => ({
+      ...prevData,
+      videos: filteredVideos,
+    }));
+  }, [filter, origVideos]);
 
   return (
     <div>
       <Header />
       <Container style={{ minHeight: "80vh" }}>
-        {/* Show Errors! */}
         {error ? (
-          <div
-            style={{
-              textAlign: "center",
-              paddingTop: "9rem"
-            }}
-          >
+          <div style={{ textAlign: "center", paddingTop: "9rem" }}>
             Error!
             <Button color="link" onClick={() => window.location.reload()}>
               Refresh Page
@@ -157,11 +100,7 @@ function App() {
               handleChange={handleChange}
               releaseYear={releaseYear}
             />
-            <CardsList
-              isLoading={isLoading}
-              videos={videos}
-              cardsCount={cardsCount}
-            />
+            <CardsList isLoading={isLoading} videos={videos} cardsCount={cardsCount} />
             {videos.length > cardsCount && (
               <div style={{ textAlign: "center" }}>
                 <div
@@ -171,7 +110,7 @@ function App() {
                     cursor: "pointer",
                     fontWeight: 400,
                     color: "#0d6efd",
-                    textDecoration: "underline"
+                    textDecoration: "underline",
                   }}
                 >
                   Load More...
